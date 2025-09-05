@@ -4,6 +4,9 @@ const countLostFoundBtn = document.getElementById("countLostFoundBtn");
 const deleteLostFoundBtn = document.getElementById("deleteLostFoundBtn");
 const deleteAllBtn = document.getElementById("deleteAllBtn");
 const status = document.getElementById("status");
+const keywordInput = document.getElementById("keywordInput");
+const countKeywordBtn = document.getElementById("countKeywordBtn");
+const deleteKeywordBtn = document.getElementById("deleteKeywordBtn");
 let authToken = null;
 
 console.log("🚀 MailPilot popup.js loaded");
@@ -17,6 +20,9 @@ function updateUIState(isAuthenticated) {
     countLostFoundBtn.disabled = false;
     deleteLostFoundBtn.disabled = false;
     deleteAllBtn.disabled = false;
+    keywordInput.disabled = false;
+    countKeywordBtn.disabled = false;
+    deleteKeywordBtn.disabled = false;
     authBtn.textContent = "Connected ✅";
     authBtn.disabled = true;
     authBtn.style.backgroundColor = "#34a853";
@@ -27,6 +33,9 @@ function updateUIState(isAuthenticated) {
     countLostFoundBtn.disabled = true;
     deleteLostFoundBtn.disabled = true;
     deleteAllBtn.disabled = true;
+    keywordInput.disabled = true;
+    countKeywordBtn.disabled = true;
+    deleteKeywordBtn.disabled = true;
     authBtn.textContent = "Connect Gmail";
     authBtn.disabled = false;
     authBtn.style.backgroundColor = "#4285F4";
@@ -375,6 +384,30 @@ deleteAllBtn.addEventListener("click", async () => {
   
   console.log("🎉 Complete cleanup finished!");
   status.textContent = "Cleanup complete! 🎉";
+});
+
+// Add new event listeners for custom keyword functionality
+countKeywordBtn.addEventListener("click", async () => {
+  const keyword = keywordInput.value.trim();
+  if (!keyword) {
+    status.textContent = "Please enter a keyword.";
+    return;
+  }
+  const query = `"${keyword}"`;
+  await countEmailsByQuery(query, `emails with keyword: "${keyword}"`);
+});
+
+deleteKeywordBtn.addEventListener("click", async () => {
+  const keyword = keywordInput.value.trim();
+  if (!keyword) {
+    status.textContent = "Please enter a keyword.";
+    return;
+  }
+  if (!confirm(`Are you sure you want to delete all emails containing the keyword "${keyword}"?`)) {
+    return;
+  }
+  const query = `"${keyword}"`;
+  await deleteEmailsByQuery(query, `emails with keyword: "${keyword}"`);
 });
 
 console.log("✅ All event listeners attached");
