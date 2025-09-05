@@ -1,23 +1,32 @@
 {
   "manifest_version": 2,
   "name": "MailPilot Cleanup Bot",
-  "version": "1.0",
-  "description": "Delete all unread promotional emails in one click.",
+  "version": "1.1",
+  "description": "Delete all unread promotional and lost & found emails in one click.",
   "permissions": [
     "identity",
     "https://gmail.googleapis.com/*",
+    "https://www.googleapis.com/*",
     "https://accounts.google.com/*"
   ],
+  "oauth2": {
+    "client_id": "494456271943-4hhnth42rf95i6ooatvfuao3tq89m1fl.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.modify"
+    ]
+  },
   "browser_action": {
     "default_title": "MailPilot Cleanup",
     "default_popup": "popup.html"
   },
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background.js"],
+    "persistent": false
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "mailpilot-cleanup@example.com" 
+      "id": "mailpilot-cleanup@example.com"
     }
   }
 }

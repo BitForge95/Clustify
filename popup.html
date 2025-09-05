@@ -8,8 +8,29 @@
   <div class="container">
     <h2>MailPilot</h2>
     <button id="authBtn">Connect Gmail</button>
-    <button id="deleteBtn" disabled>Delete Unread Promotions</button>
+    
+    <div class="button-group">
+      <button id="deletePromotionsBtn" disabled>Delete Unread Promotions</button>
+      <button id="countLostFoundBtn" disabled class="count-btn">Count Lost & Found Emails</button>
+      <button id="deleteLostFoundBtn" disabled>Delete Lost & Found Emails</button>
+      <button id="deleteAllBtn" disabled class="danger-btn">Delete Both</button>
+    </div>
+    
+    <div class="info-section">
+      <p><strong>Lost & Found Search includes:</strong></p>
+      <ul>
+        <li>Subject: "lost and found", "lost item", "found item"</li>
+        <li>Subject: "missing item", "lost property", "campus lost"</li>
+        <li>Body: "lost and found", "please claim", "unclaimed item"</li>
+        <li>Body: "security office", "lost items"</li>
+      </ul>
+    </div>
+    
     <p id="status"></p>
+    
+    <div class="debug-section">
+      <p><small>💡 Check browser console (F12) for detailed logs</small></p>
+    </div>
   </div>
   <script src="popup.js"></script>
 </body>
