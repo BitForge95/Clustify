@@ -1,8 +1,8 @@
 const authBtn = document.getElementById("authBtn");
-const deletePromotionsBtn = document.getElementById("deletePromotionsBtn");
-const countLostFoundBtn = document.getElementById("countLostFoundBtn");
-const deleteLostFoundBtn = document.getElementById("deleteLostFoundBtn");
-const deleteAllBtn = document.getElementById("deleteAllBtn");
+// const deletePromotionsBtn = document.getElementById("deletePromotionsBtn");
+// const countLostFoundBtn = document.getElementById("countLostFoundBtn");
+// const deleteLostFoundBtn = document.getElementById("deleteLostFoundBtn");
+// const deleteAllBtn = document.getElementById("deleteAllBtn");
 const status = document.getElementById("status");
 const keywordInput = document.getElementById("keywordInput");
 const countKeywordBtn = document.getElementById("countKeywordBtn");
@@ -18,10 +18,10 @@ const previewCancelBtn = document.getElementById("previewCancelBtn");
 function updateUIState(isAuthenticated) {
   if (isAuthenticated) {
     status.textContent = "Connected to Gmail ✅";
-    deletePromotionsBtn.disabled = false;
-    countLostFoundBtn.disabled = false;
-    deleteLostFoundBtn.disabled = false;
-    deleteAllBtn.disabled = false;
+    // deletePromotionsBtn.disabled = false;
+    // countLostFoundBtn.disabled = false;
+    // deleteLostFoundBtn.disabled = false;
+    // deleteAllBtn.disabled = false;
     keywordInput.disabled = false;
     countKeywordBtn.disabled = false;
     deleteKeywordBtn.disabled = false;
@@ -30,10 +30,10 @@ function updateUIState(isAuthenticated) {
     authBtn.style.backgroundColor = "#34a853";
   } else {
     status.textContent = "Click Connect Gmail to start";
-    deletePromotionsBtn.disabled = true;
-    countLostFoundBtn.disabled = true;
-    deleteLostFoundBtn.disabled = true;
-    deleteAllBtn.disabled = true;
+    // deletePromotionsBtn.disabled = true;
+    // countLostFoundBtn.disabled = true;
+    // deleteLostFoundBtn.disabled = true;
+    // deleteAllBtn.disabled = true;
     keywordInput.disabled = true;
     countKeywordBtn.disabled = true;
     deleteKeywordBtn.disabled = true;
@@ -152,27 +152,27 @@ async function showSubjectPreview(query, description) {
 }
 
 // ==================== EVENT LISTENERS ====================
-deletePromotionsBtn.addEventListener("click", async () => {
-  const ok = await showSubjectPreview("category:promotions is:unread", "unread promotional emails");
-  if (ok) await deleteEmailsByQuery("category:promotions is:unread", "unread promotional emails");
-});
+// deletePromotionsBtn.addEventListener("click", async () => {
+//   const ok = await showSubjectPreview("category:promotions is:unread", "unread promotional emails");
+//   if (ok) await deleteEmailsByQuery("category:promotions is:unread", "unread promotional emails");
+// });
 
-countLostFoundBtn.addEventListener("click", async () => {
-  const query = getLostFoundQuery();
-  await countEmailsByQuery(query, "lost and found emails");
-});
+// countLostFoundBtn.addEventListener("click", async () => {
+//   const query = getLostFoundQuery();
+//   await countEmailsByQuery(query, "lost and found emails");
+// });
 
-deleteLostFoundBtn.addEventListener("click", async () => {
-  const query = getLostFoundQuery();
-  const ok = await showSubjectPreview(query, "lost and found emails");
-  if (ok) await deleteEmailsByQuery(query, "lost and found emails");
-});
+// deleteLostFoundBtn.addEventListener("click", async () => {
+//   const query = getLostFoundQuery();
+//   const ok = await showSubjectPreview(query, "lost and found emails");
+//   if (ok) await deleteEmailsByQuery(query, "lost and found emails");
+// });
 
-deleteAllBtn.addEventListener("click", async () => {
-  if (!confirm("Delete promotions AND lost & found emails?")) return;
-  await deleteEmailsByQuery("category:promotions is:unread", "unread promotional emails");
-  await deleteEmailsByQuery(getLostFoundQuery(), "lost and found emails");
-});
+// deleteAllBtn.addEventListener("click", async () => {
+//   if (!confirm("Delete promotions AND lost & found emails?")) return;
+//   await deleteEmailsByQuery("category:promotions is:unread", "unread promotional emails");
+//   await deleteEmailsByQuery(getLostFoundQuery(), "lost and found emails");
+// });
 
 countKeywordBtn.addEventListener("click", async () => {
   const keyword = keywordInput.value.trim();
