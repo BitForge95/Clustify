@@ -2,6 +2,7 @@
 const authBtn = document.getElementById("authBtn");
 const status = document.getElementById("status");
 const keywordInput = document.getElementById("keywordInput");
+const logoutBtn = document.getElementById("logoutBtn")
 const countKeywordBtn = document.getElementById("countKeywordBtn");
 const deleteKeywordBtn = document.getElementById("deleteKeywordBtn");
 
@@ -15,14 +16,31 @@ let authToken = null;
 // ==================== UI STATE ====================
 function updateUIState(isAuthenticated) {
   const isEnabled = isAuthenticated;
-  status.textContent = isEnabled ? "Connected to Gmail ✅" : "Click Connect Gmail to start";
+  status.textContent = isEnabled ? "Connected to Gmail" : "Click Connect Gmail to start";
   keywordInput.disabled = !isEnabled;
   countKeywordBtn.disabled = !isEnabled;
   deleteKeywordBtn.disabled = !isEnabled;
-  authBtn.textContent = isEnabled ? "Connected ✅" : "Connect Gmail";
+
+  // ✨ Update auth/logout button states
+  authBtn.textContent = isEnabled ? "Connected " : "Connect Gmail";
   authBtn.disabled = isEnabled;
   authBtn.style.backgroundColor = isEnabled ? "#34a853" : "#4285F4";
+  logoutBtn.disabled = !isEnabled;
 }
+
+// ==================== LOGOUT HANDLER ====================
+  logoutBtn.addEventListener("click", async () => {
+  status.textContent = "Logging out...";
+  try {
+    await sendMessageToBackground("clearToken");
+    authToken = null;
+    updateUIState(false);
+    status.textContent = "Logged out successfully ✅";
+  } catch (err) {
+    console.error(err);
+    status.textContent = `Logout failed ❌`;
+  }
+});
 
 // ==================== BACKGROUND MESSAGING ====================
 function sendMessageToBackground(action, data = {}) {
