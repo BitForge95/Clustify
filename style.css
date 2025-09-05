@@ -4,13 +4,8 @@ body {
   background: #f9f9f9;
   width: 320px;
 }
-.container {
-  text-align: center;
-}
-h2 {
-  margin-bottom: 15px;
-  color: #333;
-}
+.container { text-align: center; }
+h2 { margin-bottom: 15px; color: #333; }
 .button-group {
   margin: 15px 0;
   display: flex;
@@ -27,29 +22,13 @@ button {
   cursor: pointer;
   transition: background-color 0.3s;
 }
-button:hover:not(:disabled) {
-  background-color: #3367D6;
-}
-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-.danger-btn {
-  background-color: #d73027;
-}
-.danger-btn:hover:not(:disabled) {
-  background-color: #b71c1c;
-}
-.count-btn {
-  background-color: #34a853;
-}
-.count-btn:hover:not(:disabled) {
-  background-color: #2d8f47;
-}
-#authBtn {
-  width: 100%;
-  margin-bottom: 10px;
-}
+button:hover:not(:disabled) { background-color: #3367D6; }
+button:disabled { background-color: #ccc; cursor: not-allowed; }
+.danger-btn { background-color: #d73027; }
+.danger-btn:hover:not(:disabled) { background-color: #b71c1c; }
+.count-btn { background-color: #34a853; }
+.count-btn:hover:not(:disabled) { background-color: #2d8f47; }
+#authBtn { width: 100%; margin-bottom: 10px; }
 .info-section {
   background: white;
   border: 1px solid #ddd;
@@ -59,17 +38,9 @@ button:disabled {
   text-align: left;
   font-size: 12px;
 }
-.info-section p {
-  margin: 0 0 8px 0;
-  font-weight: bold;
-}
-.info-section ul {
-  margin: 0;
-  padding-left: 16px;
-}
-.info-section li {
-  margin-bottom: 4px;
-}
+.info-section p { margin: 0 0 8px 0; font-weight: bold; }
+.info-section ul { margin: 0; padding-left: 16px; }
+.info-section li { margin-bottom: 4px; }
 #status {
   margin: 15px 0;
   font-size: 14px;
@@ -79,6 +50,38 @@ button:disabled {
   border: 1px solid #ddd;
   min-height: 20px;
 }
+
+/* Preview Modal */
+#previewModal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+#previewContent {
+  background: white;
+  padding: 15px;
+  border-radius: 6px;
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+#previewContent h3 { margin-top: 0; }
+#previewList { list-style: none; padding-left: 0; margin-bottom: 10px; }
+#previewList li { padding: 4px 0; border-bottom: 1px solid #ddd; }
+#previewContent button {
+  margin-right: 10px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+#previewDeleteBtn { background: #d73027; color: white; }
+#previewCancelBtn { background: #ccc; }
+
 .debug-section {
   margin-top: 15px;
   padding: 8px;
@@ -86,7 +89,4 @@ button:disabled {
   border-radius: 4px;
   border: 1px solid #b3d9e8;
 }
-.debug-section p {
-  margin: 0;
-  color: #0066cc;
-}
+.debug-section p { margin: 0; color: #0066cc; }
