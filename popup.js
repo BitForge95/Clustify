@@ -20,7 +20,9 @@ function updateUIState(isAuthenticated) {
   keywordInput.disabled = !isEnabled;
   countKeywordBtn.disabled = !isEnabled;
   deleteKeywordBtn.disabled = !isEnabled;
-
+  if(isAuthenticated){
+    document.getElementById("logoutBtn").style.display = 'block'
+  }
   // ✨ Update auth/logout button states
   authBtn.textContent = isEnabled ? "Connected " : "Connect Gmail";
   authBtn.disabled = isEnabled;
@@ -34,6 +36,7 @@ function updateUIState(isAuthenticated) {
   try {
     await sendMessageToBackground("clearToken");
     authToken = null;
+    document.getElementById("logoutBtn").style.display = 'none'
     updateUIState(false);
     status.textContent = "Logged out successfully ✅";
   } catch (err) {
