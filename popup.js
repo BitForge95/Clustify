@@ -9,12 +9,14 @@ const countKeywordBtn = document.getElementById("countKeywordBtn");
 const deleteKeywordBtn = document.getElementById("deleteKeywordBtn");
 let authToken = null;
 
-console.log("🚀 MailPilot popup.js loaded");
+const previewModal = document.getElementById("previewModal");
+const previewList = document.getElementById("previewList");
+const previewDeleteBtn = document.getElementById("previewDeleteBtn");
+const previewCancelBtn = document.getElementById("previewCancelBtn");
 
-// Function to update UI state based on authentication status
+// ==================== UI STATE ====================
 function updateUIState(isAuthenticated) {
   if (isAuthenticated) {
-    console.log("✅ Updating UI to authenticated state");
     status.textContent = "Connected to Gmail ✅";
     deletePromotionsBtn.disabled = false;
     countLostFoundBtn.disabled = false;
@@ -27,7 +29,6 @@ function updateUIState(isAuthenticated) {
     authBtn.disabled = true;
     authBtn.style.backgroundColor = "#34a853";
   } else {
-    console.log("❌ Updating UI to unauthenticated state");
     status.textContent = "Click Connect Gmail to start";
     deletePromotionsBtn.disabled = true;
     countLostFoundBtn.disabled = true;
@@ -42,93 +43,73 @@ function updateUIState(isAuthenticated) {
   }
 }
 
-// Send message with proper error handling
+// ==================== BACKGROUND MESSAGING ====================
 function sendMessageToBackground(action) {
   return new Promise((resolve, reject) => {
-    console.log(`📤 Sending ${action} request to background`);
-    
-    browser.runtime.sendMessage({ action: action }, (response) => {
-      if (browser.runtime.lastError) {
-        console.error(`❌ Runtime error for ${action}:`, browser.runtime.lastError);
-        reject(browser.runtime.lastError);
-        return;
-      }
-      
-      console.log(`📥 Response for ${action}:`, response);
-      
-      if (!response) {
-        reject(new Error(`No response received for ${action}`));
-        return;
-      }
-      
-      if (response.success) {
-        resolve(response);
-      } else {
-        reject(new Error(response.error || `${action} failed`));
-      }
+    browser.runtime.sendMessage({ action }, (response) => {
+      if (browser.runtime.lastError) reject(browser.runtime.lastError);
+      else if (!response) reject(new Error(`No response for ${action}`));
+      else if (response.success) resolve(response);
+      else reject(new Error(response.error || `${action} failed`));
     });
   });
 }
 
-// Check if we already have a stored token on popup load
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log("📋 Popup loaded, checking for existing auth");
-  
-  try {
-    const response = await sendMessageToBackground('checkToken');
-    
-    if (response.hasValidToken && response.token) {
-      console.log("🔑 Found valid stored token");
-      authToken = response.token;
-      updateUIState(true);
-    } else {
-      console.log("❌ No valid stored token found");
-      updateUIState(false);
-    }
-  } catch (err) {
-    console.log("❌ Error checking stored token:", err);
-    updateUIState(false);
-  }
-});
-
-authBtn.addEventListener("click", async () => {
-  console.log("🔐 Authentication button clicked");
-  status.textContent = "Authenticating... 🔐";
-  authBtn.disabled = true;
-  authBtn.textContent = "Connecting...";
-  
-  try {
-    const response = await sendMessageToBackground('getToken');
-    
-    if (!response.token || typeof response.token !== "string" || response.token.length < 50) {
-      throw new Error(`Invalid access token received: ${response.token}`);
-    }
-    
-    authToken = response.token;
-    
-    console.log("✅ Authentication successful");
-    updateUIState(true);
-    
-  } catch (err) {
-    console.error("❌ Authentication failed:", err);
+// ==================== TOKEN VALIDATION ====================
+async function validateAndRefreshToken() {
+  if (!authToken) throw new Error("No token available. Connect to Gmail first.");
+  const testRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
+    headers: { Authorization: `Bearer ${authToken}` }
+  });
+  if (testRes.status === 401) {
     authToken = null;
-    
-    // Clear any stored token on auth failure
-    try {
-      await sendMessageToBackground('clearToken');
-    } catch (clearError) {
-      console.error("❌ Error clearing token:", clearError);
-    }
-    
-    status.textContent = `Authentication failed: ${err.message} ❌`;
-    authBtn.disabled = false;
-    authBtn.textContent = "Connect Gmail";
-    authBtn.style.backgroundColor = "#4285F4";
+    await sendMessageToBackground("clearToken");
     updateUIState(false);
+    throw new Error("Token expired. Please reconnect Gmail.");
   }
-});
+  if (!testRes.ok) throw new Error(`Token validation failed: ${testRes.status}`);
+  return true;
+}
 
-// Function to get the Lost & Found search query
+// ==================== EMAIL DELETION ====================
+async function deleteEmailsByQuery(query, description) {
+  await validateAndRefreshToken();
+  const listRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}`, {
+    headers: { Authorization: `Bearer ${authToken}` }
+  });
+  const data = await listRes.json();
+  if (!data.messages || data.messages.length === 0) {
+    status.textContent = `No ${description} found 🎉`;
+    return;
+  }
+  const ids = data.messages.map(m => m.id);
+  const batchSize = 1000;
+  let deleted = 0;
+  for (let i = 0; i < ids.length; i += batchSize) {
+    const batch = ids.slice(i, i + batchSize);
+    await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/batchDelete", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${authToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: batch })
+    });
+    deleted += batch.length;
+  }
+  status.textContent = `Deleted ${deleted} ${description} ✅`;
+}
+
+// ==================== COUNT EMAILS ====================
+async function countEmailsByQuery(query, description) {
+  await validateAndRefreshToken();
+  const listRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}`, {
+    headers: { Authorization: `Bearer ${authToken}` }
+  });
+  const data = await listRes.json();
+  const count = data.messages ? data.messages.length : 0;
+  status.textContent = count ? `Found ${count} ${description} 📊` : `No ${description} found 🎉`;
+  return count;
+}
+
+// ==================== LOST & FOUND QUERY ====================
 function getLostFoundQuery() {
   return `
     subject:("lost and found" OR "lost & found" OR "lost+found" OR "lostandfound" OR 
@@ -141,273 +122,95 @@ function getLostFoundQuery() {
   `.replace(/\s+/g, ' ').trim();
 }
 
-// Function to validate token before making API calls
-async function validateAndRefreshToken() {
-  if (!authToken) {
-    throw new Error("No authentication token available. Please connect to Gmail first.");
+// ==================== SUBJECT PREVIEW ====================
+async function showSubjectPreview(query, description) {
+  await validateAndRefreshToken();
+  const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=50`, {
+    headers: { Authorization: `Bearer ${authToken}` }
+  });
+  const data = await res.json();
+  if (!data.messages || data.messages.length === 0) {
+    status.textContent = `No ${description} found 🎉`;
+    return false;
   }
-  
-  // Test the token with a simple API call
-  try {
-    const testResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
-      headers: { 
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
-      }
+  previewList.innerHTML = "";
+  for (const msg of data.messages) {
+    const msgRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=Subject`, {
+      headers: { Authorization: `Bearer ${authToken}` }
     });
-    
-    if (testResponse.status === 401) {
-      console.log("🔄 Token expired, clearing stored token");
-      authToken = null;
-      await sendMessageToBackground('clearToken');
-      updateUIState(false);
-      throw new Error("Token expired. Please reconnect to Gmail.");
-    }
-    
-    if (!testResponse.ok) {
-      throw new Error(`Token validation failed: ${testResponse.status}`);
-    }
-    
-    return true;
-  } catch (err) {
-    console.error("❌ Token validation failed:", err);
-    throw err;
+    const msgData = await msgRes.json();
+    const header = msgData.payload.headers.find(h => h.name === "Subject");
+    const li = document.createElement("li");
+    li.textContent = header ? header.value : "(no subject)";
+    previewList.appendChild(li);
   }
+  previewModal.style.display = "flex";
+  return new Promise(resolve => {
+    previewDeleteBtn.onclick = () => { previewModal.style.display = "none"; resolve(true); };
+    previewCancelBtn.onclick = () => { previewModal.style.display = "none"; resolve(false); };
+  });
 }
 
-// Function to count emails by query
-async function countEmailsByQuery(query, description) {
-  console.log(`🔢 Starting ${description} count`);
-  console.log("Query:", query);
-  
-  try {
-    await validateAndRefreshToken();
-    
-    status.textContent = `Counting ${description}... 🔍`;
-    console.log(`📡 Making API request to count ${description}`);
-    
-    const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}`;
-    console.log("Search URL:", searchUrl);
-    
-    const listRes = await fetch(searchUrl, {
-      headers: { 
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log("📊 Search response status:", listRes.status);
-    
-    if (!listRes.ok) {
-      const errorText = await listRes.text();
-      console.error("❌ Search request failed:", {
-        status: listRes.status,
-        statusText: listRes.statusText,
-        errorBody: errorText
-      });
-      throw new Error(`Failed to list messages: ${listRes.status} ${listRes.statusText}`);
-    }
-    
-    const data = await listRes.json();
-    const count = data.messages ? data.messages.length : 0;
-    const estimate = data.resultSizeEstimate || 0;
-    
-    console.log("📋 Count results:", {
-      actualCount: count,
-      estimatedCount: estimate,
-      hasNextPage: !!data.nextPageToken
-    });
-    
-    if (count === 0) {
-      console.log(`🎉 No ${description} found`);
-      status.textContent = `No ${description} found 🎉`;
-    } else {
-      console.log(`📊 Found ${count} ${description}`);
-      status.textContent = `Found ${count} ${description} 📊`;
-      
-      if (data.nextPageToken && estimate > count) {
-        status.textContent += ` (${estimate} estimated total)`;
-      }
-    }
-    
-    return count;
-    
-  } catch (err) {
-    console.error("💥 Error during counting:", err);
-    status.textContent = `Error: ${err.message} ❌`;
-    return 0;
-  }
-}
-
-// Function to delete emails by query with extensive logging
-async function deleteEmailsByQuery(query, description) {
-  console.log(`🔍 Starting ${description} cleanup`);
-  console.log("Query:", query);
-  
-  try {
-    await validateAndRefreshToken();
-    
-    status.textContent = `Finding ${description}... 📬`;
-    console.log(`📡 Making API request to find ${description}`);
-    
-    const searchUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}`;
-    console.log("Search URL:", searchUrl);
-    
-    const listRes = await fetch(searchUrl, {
-      headers: { 
-        Authorization: `Bearer ${authToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log("📊 Search response status:", listRes.status);
-    
-    if (!listRes.ok) {
-      const errorText = await listRes.text();
-      console.error("❌ Search request failed:", {
-        status: listRes.status,
-        statusText: listRes.statusText,
-        errorBody: errorText
-      });
-      throw new Error(`Failed to list messages: ${listRes.status} ${listRes.statusText}`);
-    }
-    
-    const data = await listRes.json();
-    console.log("📋 Search results:", {
-      messagesFound: data.messages ? data.messages.length : 0,
-      resultSizeEstimate: data.resultSizeEstimate,
-      nextPageToken: data.nextPageToken || "none"
-    });
-    
-    if (!data.messages || data.messages.length === 0) {
-      console.log(`🎉 No ${description} found`);
-      status.textContent = `No ${description} found 🎉`;
-      return;
-    }
-    
-    const ids = data.messages.map(msg => msg.id);
-    console.log(`🗑️ Preparing to delete ${ids.length} emails`);
-    
-    status.textContent = `Deleting ${ids.length} ${description}... 🧹`;
-    
-    const batchSize = 1000;
-    let totalDeleted = 0;
-    
-    console.log(`📦 Processing in batches of ${batchSize}`);
-    
-    for (let i = 0; i < ids.length; i += batchSize) {
-      const batch = ids.slice(i, i + batchSize);
-      console.log(`🔄 Processing batch ${Math.floor(i/batchSize) + 1}, emails ${i + 1}-${Math.min(i + batchSize, ids.length)}`);
-      
-      const deletePayload = { ids: batch };
-      
-      const deleteRes = await fetch(
-        "https://gmail.googleapis.com/gmail/v1/users/me/messages/batchDelete",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(deletePayload)
-        }
-      );
-      
-      console.log(`📊 Delete batch response status: ${deleteRes.status}`);
-      
-      if (!deleteRes.ok) {
-        const errorText = await deleteRes.text();
-        console.error("❌ Delete request failed:", {
-          status: deleteRes.status,
-          statusText: deleteRes.statusText,
-          errorBody: errorText
-        });
-        throw new Error(`Failed to delete messages: ${deleteRes.status} ${deleteRes.statusText}`);
-      }
-      
-      totalDeleted += batch.length;
-      console.log(`✅ Successfully deleted batch of ${batch.length} emails. Total deleted: ${totalDeleted}`);
-      
-      if (ids.length > batchSize) {
-        status.textContent = `Deleted ${totalDeleted}/${ids.length} ${description}... 🧹`;
-      }
-    }
-    
-    console.log(`🎉 Cleanup complete! Deleted ${totalDeleted} ${description}`);
-    status.textContent = `Deleted ${totalDeleted} ${description} ✅`;
-    
-  } catch (err) {
-    console.error("💥 Error during deletion:", err);
-    status.textContent = `Error: ${err.message} ❌`;
-  }
-}
-
-// Delete unread promotional emails
+// ==================== EVENT LISTENERS ====================
 deletePromotionsBtn.addEventListener("click", async () => {
-  console.log("🛒 Delete promotions button clicked");
-  await deleteEmailsByQuery("category:promotions is:unread", "unread promotional emails");
+  const ok = await showSubjectPreview("category:promotions is:unread", "unread promotional emails");
+  if (ok) await deleteEmailsByQuery("category:promotions is:unread", "unread promotional emails");
 });
 
-// Count lost and found emails
 countLostFoundBtn.addEventListener("click", async () => {
-  console.log("🔢 Count Lost & Found button clicked");
   const query = getLostFoundQuery();
-  console.log("🔍 Lost & Found count query:", query);
   await countEmailsByQuery(query, "lost and found emails");
 });
 
-// Delete lost and found emails with comprehensive search
 deleteLostFoundBtn.addEventListener("click", async () => {
-  console.log("🔍 Delete Lost & Found button clicked");
   const query = getLostFoundQuery();
-  console.log("🔍 Lost & Found search query:", query);
-  await deleteEmailsByQuery(query, "lost and found emails");
+  const ok = await showSubjectPreview(query, "lost and found emails");
+  if (ok) await deleteEmailsByQuery(query, "lost and found emails");
 });
 
-// Delete both promotional and lost & found emails
 deleteAllBtn.addEventListener("click", async () => {
-  console.log("🚨 Delete All button clicked");
-  
-  if (!confirm("Are you sure you want to delete both unread promotions AND lost & found emails?")) {
-    console.log("❌ User cancelled delete all operation");
-    return;
-  }
-  
-  console.log("✅ User confirmed delete all operation");
-  
-  console.log("🛒 Starting promotional emails deletion");
+  if (!confirm("Delete promotions AND lost & found emails?")) return;
   await deleteEmailsByQuery("category:promotions is:unread", "unread promotional emails");
-  
-  console.log("🔍 Starting lost and found emails deletion");
-  const lostFoundQuery = getLostFoundQuery();
-  await deleteEmailsByQuery(lostFoundQuery, "lost and found emails");
-  
-  console.log("🎉 Complete cleanup finished!");
-  status.textContent = "Cleanup complete! 🎉";
+  await deleteEmailsByQuery(getLostFoundQuery(), "lost and found emails");
 });
 
-// Add new event listeners for custom keyword functionality
 countKeywordBtn.addEventListener("click", async () => {
   const keyword = keywordInput.value.trim();
-  if (!keyword) {
-    status.textContent = "Please enter a keyword.";
-    return;
-  }
-  const query = `"${keyword}"`;
-  await countEmailsByQuery(query, `emails with keyword: "${keyword}"`);
+  if (!keyword) { status.textContent="Enter a keyword."; return; }
+  await countEmailsByQuery(`"${keyword}"`, `emails with keyword "${keyword}"`);
 });
 
 deleteKeywordBtn.addEventListener("click", async () => {
   const keyword = keywordInput.value.trim();
-  if (!keyword) {
-    status.textContent = "Please enter a keyword.";
-    return;
-  }
-  if (!confirm(`Are you sure you want to delete all emails containing the keyword "${keyword}"?`)) {
-    return;
-  }
-  const query = `"${keyword}"`;
-  await deleteEmailsByQuery(query, `emails with keyword: "${keyword}"`);
+  if (!keyword) { status.textContent="Enter a keyword."; return; }
+  const ok = await showSubjectPreview(`"${keyword}"`, `emails with keyword "${keyword}"`);
+  if (ok) await deleteEmailsByQuery(`"${keyword}"`, `emails with keyword "${keyword}"`);
 });
 
-console.log("✅ All event listeners attached");
+// ==================== AUTH ====================
+authBtn.addEventListener("click", async () => {
+  status.textContent = "Authenticating...";
+  authBtn.disabled = true;
+  authBtn.textContent = "Connecting...";
+  try {
+    const response = await sendMessageToBackground("getToken");
+    authToken = response.token;
+    updateUIState(true);
+  } catch (err) {
+    console.error(err);
+    status.textContent = `Auth failed ❌`;
+    authBtn.disabled = false;
+    authBtn.textContent = "Connect Gmail";
+    authBtn.style.backgroundColor = "#4285F4";
+    updateUIState(false);
+  }
+});
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const resp = await sendMessageToBackground('checkToken');
+    if (resp.hasValidToken) { authToken = resp.token; updateUIState(true); }
+    else updateUIState(false);
+  } catch { updateUIState(false); }
+});
