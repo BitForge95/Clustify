@@ -1,0 +1,32 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  width: 260px;
+  padding: 15px;
+}
+
+button {
+  padding: 10px;
+  margin: 6px 0;
+  width: 90%;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#authBtn {
+  background-color: #1a73e8;
+  color: white;
+}
+
+#deleteBtn {
+  background-color: #ea4335;
+  color: white;
+}
+
+#status {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #333;
+}
