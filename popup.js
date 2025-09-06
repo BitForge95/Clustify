@@ -5,7 +5,7 @@ const keywordInput = document.getElementById("keywordInput");
 const logoutBtn = document.getElementById("logoutBtn")
 const countKeywordBtn = document.getElementById("countKeywordBtn");
 const deleteKeywordBtn = document.getElementById("deleteKeywordBtn");
-
+const subjectOnlyCheckbox = document.getElementById("subjectOnlyCheckbox");
 const previewModal = document.getElementById("previewModal");
 const previewList = document.getElementById("previewList");
 const previewDeleteBtn = document.getElementById("previewDeleteBtn");
@@ -185,29 +185,40 @@ async function showSubjectPreview(query, description) {
 // ==================== EXISTING EVENTS ====================
 countKeywordBtn.addEventListener("click", async () => {
   const keyword = keywordInput.value.trim();
-  if (!keyword) { status.textContent="Enter a keyword."; return; }
-  try {
-    await countEmailsByQuery(`"${keyword}"`, `emails with keyword "${keyword}"`);
-  } catch (err) {
-    status.textContent = `Error: ${err.message}`;
+  if (!keyword) {
+    status.textContent = "Please enter a keyword.";
+    return;
   }
-});
 
+  // Build the query based on the checkbox state
+  const isSubjectOnly = subjectOnlyCheckbox.checked;
+  const query = isSubjectOnly ? `subject:("${keyword}")` : `"${keyword}"`;
+  
+  const description = `emails with keyword "${keyword}"` + (isSubjectOnly ? " in subject" : "");
+
+  await countEmailsByQuery(query, description);
+});
 deleteKeywordBtn.addEventListener("click", async () => {
   const keyword = keywordInput.value.trim();
-  // fixed: use comparison instead of assignment
-  if (previewDeleteBtn && previewDeleteBtn.textContent === "Apply") {
-    previewDeleteBtn.textContent = "Delete";
+  if (!keyword) {
+    status.textContent = "Please enter a keyword.";
+    return;
   }
-  if (!keyword) { status.textContent="Enter a keyword."; return; }
-  try {
-    const ok = await showSubjectPreview(`"${keyword}"`, `emails with keyword "${keyword}"`);
-    if (ok) await deleteEmailsByQuery(`"${keyword}"`, `emails with keyword "${keyword}"`);
-  } catch (err) {
-    status.textContent = `Error: ${err.message}`;
+
+  // Build the query based on the checkbox state
+  const isSubjectOnly = subjectOnlyCheckbox.checked;
+  const query = isSubjectOnly ? `subject:("${keyword}")` : `"${keyword}"`;
+  
+  const description = `emails with keyword "${keyword}"` + (isSubjectOnly ? " in subject" : "");
+
+  // Show a preview first
+  const userConfirmed = await showSubjectPreview(query, description);
+  
+  // If the user confirms, proceed with deletion
+  if (userConfirmed) {
+    await deleteEmailsByQuery(query, description);
   }
 });
-
 // ==================== NEW: AI KEYWORDS + LABELING ====================
 async function aiSuggestKeywords(labelName) {
   status.textContent = "Asking Groq LLaMA for keywords...";
