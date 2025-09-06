@@ -3,8 +3,6 @@
 <head>
   <title>Clustify</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Optional: point to your AI backend for keyword suggestions -->
-  <!-- <script>window.AI_BACKEND_URL = "https://your-backend.example.com/keywords";</script> -->
 </head>
 <body>
   <div class="container">
@@ -13,7 +11,6 @@
     <button id="logoutBtn">Log Out</button>
 
 
-    <!-- Custom Keyword Delete/Count -->
     <div class="custom-keyword-section">
       <h3>Custom Keyword Search</h3>
       <input type="text" id="keywordInput" placeholder="Enter keyword (e.g., 'unsubscribe')">
@@ -27,7 +24,6 @@
       </div>
     </div>
 
-    <!-- ===== AI Auto-Label Section (NEW) ===== -->
     <div class="labeler-section">
       <h3>AI Auto-Label</h3>
       <input type="text" id="labelNameInput" placeholder="Enter label (e.g., 'Travel Receipts')" />
@@ -35,12 +31,11 @@
         <button id="generateKeywordsBtn" disabled class="count-btn">Suggest Keywords</button>
         <button id="applyAutoLabelBtn" disabled>Preview & Apply Label</button>
       </div>
-      <textarea id="generatedKeywords" rows="3" placeholder="Keywords will appear here…" readonly></textarea>
+      <textarea id="generatedKeywords" rows="3" placeholder="Keywords will appear here" readonly></textarea>
     </div>
 
     <p id="status"></p>
 
-    <!-- Preview Modal -->
     <div id="previewModal" style="display:none;">
       <div id="previewContent">
         <h3>Email Subjects to Delete / Label</h3>

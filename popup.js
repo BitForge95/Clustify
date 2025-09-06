@@ -1,4 +1,3 @@
-// ==================== DOM ELEMENTS ====================
 const authBtn = document.getElementById("authBtn");
 const status = document.getElementById("status");
 const keywordInput = document.getElementById("keywordInput");
@@ -11,7 +10,6 @@ const previewList = document.getElementById("previewList");
 const previewDeleteBtn = document.getElementById("previewDeleteBtn");
 const previewCancelBtn = document.getElementById("previewCancelBtn");
 
-// ===== AI Auto-Label DOM (NEW) =====
 const labelNameInput = document.getElementById("labelNameInput");
 const generateKeywordsBtn = document.getElementById("generateKeywordsBtn");
 const applyAutoLabelBtn = document.getElementById("applyAutoLabelBtn");
@@ -19,7 +17,6 @@ const generatedKeywords = document.getElementById("generatedKeywords");
 
 let authToken = null;
 
-// ==================== UI STATE ====================
 function updateUIState(isAuthenticated) {
   const isEnabled = isAuthenticated;
   status.textContent = isEnabled ? "Connected to Gmail" : "Click Connect Gmail to start";
@@ -27,7 +24,6 @@ function updateUIState(isAuthenticated) {
   countKeywordBtn.disabled = !isEnabled;
   deleteKeywordBtn.disabled = !isEnabled;
 
-  // NEW: enable/disable labeler controls
   if (labelNameInput) labelNameInput.disabled = !isEnabled;
   if (generateKeywordsBtn) generateKeywordsBtn.disabled = !isEnabled;
   if (applyAutoLabelBtn) applyAutoLabelBtn.disabled = !isEnabled;
@@ -35,14 +31,12 @@ function updateUIState(isAuthenticated) {
   if(isAuthenticated){
     document.getElementById("logoutBtn").style.display = 'block'
   }
-  // ✨ Update auth/logout button states
   authBtn.textContent = isEnabled ? "Connected " : "Connect Gmail";
   authBtn.disabled = isEnabled;
   authBtn.style.backgroundColor = isEnabled ? "#34a853" : "#4285F4";
   logoutBtn.disabled = !isEnabled;
 }
 
-// ==================== LOGOUT HANDLER ====================
 logoutBtn.addEventListener("click", async () => {
   status.textContent = "Logging out...";
   try {
@@ -57,7 +51,6 @@ logoutBtn.addEventListener("click", async () => {
   }
 });
 
-// ==================== BACKGROUND MESSAGING ====================
 function sendMessageToBackground(action, data = {}) {
   return new Promise((resolve, reject) => {
     browser.runtime.sendMessage({ action, ...data }, (response) => {
@@ -69,7 +62,6 @@ function sendMessageToBackground(action, data = {}) {
   });
 }
 
-// ==================== TOKEN VALIDATION ====================
 async function validateAndRefreshToken() {
   if (!authToken) throw new Error("No token available. Connect to Gmail first.");
   const testRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
@@ -85,7 +77,6 @@ async function validateAndRefreshToken() {
   return true;
 }
 
-// ==================== NEW: PAGINATION HELPER ====================
 async function getAllMessageIds(query) {
   await validateAndRefreshToken();
   let allIds = [];
@@ -111,7 +102,6 @@ async function getAllMessageIds(query) {
   return allIds;
 }
 
-// ==================== UPDATED: EMAIL DELETION ====================
 async function deleteEmailsByQuery(query, description) {
   const ids = await getAllMessageIds(query);
   if (ids.length === 0) {
@@ -138,7 +128,6 @@ async function deleteEmailsByQuery(query, description) {
   status.textContent = `Deleted ${deletedCount} ${description} `;
 }
 
-// ==================== UPDATED: COUNT EMAILS ====================
 async function countEmailsByQuery(query, description) {
   const ids = await getAllMessageIds(query);
   const count = ids.length;
@@ -146,7 +135,6 @@ async function countEmailsByQuery(query, description) {
   return count;
 }
 
-// ==================== SUBJECT PREVIEW (UNCHANGED) ====================
 async function showSubjectPreview(query, description) {
   await validateAndRefreshToken();
   
@@ -182,7 +170,6 @@ async function showSubjectPreview(query, description) {
   });
 }
 
-// ==================== EXISTING EVENTS ====================
 countKeywordBtn.addEventListener("click", async () => {
   const keyword = keywordInput.value.trim();
   if (!keyword) {
@@ -190,7 +177,6 @@ countKeywordBtn.addEventListener("click", async () => {
     return;
   }
 
-  // Build the query based on the checkbox state
   const isSubjectOnly = subjectOnlyCheckbox.checked;
   const query = isSubjectOnly ? `subject:("${keyword}")` : `"${keyword}"`;
   
@@ -205,21 +191,17 @@ deleteKeywordBtn.addEventListener("click", async () => {
     return;
   }
 
-  // Build the query based on the checkbox state
   const isSubjectOnly = subjectOnlyCheckbox.checked;
   const query = isSubjectOnly ? `subject:("${keyword}")` : `"${keyword}"`;
   
   const description = `emails with keyword "${keyword}"` + (isSubjectOnly ? " in subject" : "");
 
-  // Show a preview first
   const userConfirmed = await showSubjectPreview(query, description);
   
-  // If the user confirms, proceed with deletion
   if (userConfirmed) {
     await deleteEmailsByQuery(query, description);
   }
 });
-// ==================== NEW: AI KEYWORDS + LABELING ====================
 async function aiSuggestKeywords(labelName) {
   status.textContent = "Asking Groq LLaMA for keywords...";
   if (previewDeleteBtn) previewDeleteBtn.textContent = "Apply";
@@ -256,7 +238,6 @@ async function aiSuggestKeywords(labelName) {
     console.warn("Groq AI unavailable, using fallback.", e);
   }
 
-  // --- Fallback heuristic (unchanged) ---
   const base = (labelName || "").toLowerCase().trim();
   const words = Array.from(new Set(base.split(/[\s\-_/]+/).filter(Boolean)));
 
@@ -337,7 +318,6 @@ async function labelEmailsByQuery(query, labelId, description) {
   status.textContent = `Applied label to ${labeled} ${description} `;
 }
 
-// Hook up buttons for AI labeling
 if (generateKeywordsBtn) {
   generateKeywordsBtn.addEventListener("click", async () => {
     const label = labelNameInput ? labelNameInput.value.trim() : "";
@@ -358,7 +338,6 @@ if (applyAutoLabelBtn) {
     const label = labelNameInput ? labelNameInput.value.trim() : "";
     if (!label) { status.textContent = "Enter a label name first."; return; }
 
-    // Use existing keywords if present; otherwise fetch from AI
     let keywords = generatedKeywords && generatedKeywords.value
       ? generatedKeywords.value.split(",").map(s => s.trim()).filter(Boolean)
       : [];
@@ -389,7 +368,6 @@ if (applyAutoLabelBtn) {
   });
 }
 
-// ==================== AUTH & INIT ====================
 authBtn.addEventListener("click", async () => {
   status.textContent = "Authenticating...";
   authBtn.disabled = true;

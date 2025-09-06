@@ -14,10 +14,9 @@ h2 {
   color: #333; 
 }
 
-/* New style for the auth button group */
 .auth-buttons {
   display: flex;
-  gap: 8px; /* Adds space between auth and logout buttons */
+  gap: 8px;
 }
 
 .button-group {
@@ -70,7 +69,7 @@ button:disabled {
 
 #logoutBtn {
   width: 100%;
-  background-color: #d73027; /* Make the logout button red */
+  background-color: #d73027;
   display: none;
 }
 
@@ -78,7 +77,6 @@ button:disabled {
   background-color: #b71c1c;
 }
 
-/* Class to hide the button when not logged in */
 .hidden {
   display: none;
 }
@@ -173,14 +171,13 @@ button:disabled {
 }
 
 .auth-buttons #authBtn.connected {
-  background-color: #34a853; /* Green for "Connected" */
+  background-color: #34a853;
 }
 
 .auth-buttons #authBtn.connected:hover {
   background-color: #2d8f47;
 }
 
-/* ===== NEW: AI Auto-Label styles ===== */
 .labeler-section {
   background: white;
   border: 1px solid #ddd;
@@ -204,7 +201,6 @@ button:disabled {
   font-size: 14px;
 }
 
-/* ===== NEW: Custom Keyword Search Styles ===== */
 .custom-keyword-section {
   background: white;
   border: 1px solid #ddd;
@@ -218,7 +214,6 @@ button:disabled {
   margin: 0 0 10px 0;
 }
 
-/* Style for the keyword input field */
 #keywordInput {
   width: 100%;
   box-sizing: border-box;
@@ -228,14 +223,12 @@ button:disabled {
   font-size: 14px;
 }
 
-/* Container for the checkbox and label */
 .subject-only-container {
   display: flex;
-  align-items: center; /* Vertically center the checkbox and text */
-  margin-top: 8px; /* Add some space above */
+  align-items: center;
+  margin-top: 8px;
 }
 
-/* Adjust spacing for the checkbox */
 #subjectOnlyCheckbox {
   margin-top: 10px;
   margin-right: 6px;

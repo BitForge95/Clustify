@@ -61,7 +61,6 @@ async function getAuthToken() {
           tokenPreview: accessToken ? accessToken.substring(0, 20) + "..." : "none"
         });
         
-        // Check if we got the correct scopes
         if (scope) {
           const grantedScopes = decodeURIComponent(scope).split(' ');
           console.log("🔐 Granted scopes:", grantedScopes);
@@ -87,7 +86,6 @@ async function getAuthToken() {
         if (accessToken) {
           console.log("✅ Got access token successfully");
           
-          // Store the token immediately
           try {
             await browser.storage.local.set({ 
               authToken: accessToken,
@@ -109,7 +107,6 @@ async function getAuthToken() {
   });
 }
 
-// Listen for messages from popup.js
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("📨 Message received in background:", {
     message: message,
