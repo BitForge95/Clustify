@@ -165,7 +165,7 @@ button:disabled {
 
 #previewDeleteBtn { 
   background: #d73027; 
-  color: white; 
+  color: rgb(255, 255, 255); 
 }
 
 #previewCancelBtn { 
@@ -202,4 +202,45 @@ button:disabled {
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 14px;
+}
+
+/* ===== NEW: Custom Keyword Search Styles ===== */
+.custom-keyword-section {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.custom-keyword-section h3 {
+  margin: 0 0 10px 0;
+}
+
+/* Style for the keyword input field */
+#keywordInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Container for the checkbox and label */
+.subject-only-container {
+  display: flex;
+  align-items: center; /* Vertically center the checkbox and text */
+  margin-top: 8px; /* Add some space above */
+}
+
+/* Adjust spacing for the checkbox */
+#subjectOnlyCheckbox {
+  margin-top: 10px;
+  margin-right: 6px;
+}
+
+.custom-keyword-input-group {
+  margin-bottom: 12px;
 }
