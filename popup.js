@@ -118,8 +118,8 @@ async function getAllMessageIds(query) {
 
 // ==================== UPDATED: EMAIL DELETION ====================
 async function deleteEmailsByQuery(query, description) {
+  
   const ids = await getAllMessageIds(query);
-
   if (ids.length === 0) {
     status.textContent = `No ${description} found to delete 🎉`;
     return;
@@ -155,6 +155,7 @@ async function countEmailsByQuery(query, description) {
 // ==================== SUBJECT PREVIEW (UNCHANGED) ====================
 async function showSubjectPreview(query, description) {
   await validateAndRefreshToken();
+  
   const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${encodeURIComponent(query)}&maxResults=50`, {
     headers: { Authorization: `Bearer ${authToken}` }
   });
@@ -200,6 +201,9 @@ countKeywordBtn.addEventListener("click", async () => {
 
 deleteKeywordBtn.addEventListener("click", async () => {
   const keyword = keywordInput.value.trim();
+    if(previewDeleteBtn.textContent = "Apply"){
+    previewDeleteBtn.textContent = "Delete"
+  }
   if (!keyword) { status.textContent="Enter a keyword."; return; }
   try {
     const ok = await showSubjectPreview(`"${keyword}"`, `emails with keyword "${keyword}"`);
@@ -209,12 +213,13 @@ deleteKeywordBtn.addEventListener("click", async () => {
   }
 });
 
+
 // ==================== NEW: AI KEYWORDS + LABELING ====================
 // Option A (recommended): call your backend at window.AI_BACKEND_URL
 // Option B: heuristic fallback when no backend is configured
 async function aiSuggestKeywords(labelName) {
   status.textContent = "Asking AI for keywords (or using fallback)...";
-
+  previewDeleteBtn.textContent = "Apply"
   try {
     if (window.AI_BACKEND_URL) {
       const res = await fetch(window.AI_BACKEND_URL, {
@@ -254,7 +259,6 @@ async function aiSuggestKeywords(labelName) {
 function buildGmailQueryFromKeywords(keywords) {
   if (!keywords || keywords.length === 0) return "";
   const esc = s => `"${s.replace(/"/g, '\\"')}"`;
-
   const any = keywords.map(k => esc(k)).join(" OR ");
   const subj = keywords.map(k => `subject:${esc(k)}`).join(" OR ");
   return `( ${any} OR ${subj} ) -in:trash`;
