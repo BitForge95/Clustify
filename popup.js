@@ -50,10 +50,10 @@ logoutBtn.addEventListener("click", async () => {
     authToken = null;
     document.getElementById("logoutBtn").style.display = 'none'
     updateUIState(false);
-    status.textContent = "Logged out successfully ✅";
+    status.textContent = "Logged out successfully ";
   } catch (err) {
     console.error(err);
-    status.textContent = `Logout failed ❌`;
+    status.textContent = `Logout failed `;
   }
 });
 
@@ -115,11 +115,11 @@ async function getAllMessageIds(query) {
 async function deleteEmailsByQuery(query, description) {
   const ids = await getAllMessageIds(query);
   if (ids.length === 0) {
-    status.textContent = `No ${description} found to delete 🎉`;
+    status.textContent = `No ${description} found to delete `;
     return;
   }
 
-  status.textContent = `Deleting ${ids.length} ${description}... 🧹`;
+  status.textContent = `Deleting ${ids.length} ${description}... `;
   const batchSize = 1000;
   let deletedCount = 0;
 
@@ -132,17 +132,17 @@ async function deleteEmailsByQuery(query, description) {
     });
     if (!deleteRes.ok) throw new Error(`Failed to delete batch: ${deleteRes.status}`);
     deletedCount += batch.length;
-    status.textContent = `Deleted ${deletedCount} of ${ids.length} ${description}... 🧹`;
+    status.textContent = `Deleted ${deletedCount} of ${ids.length} ${description}... `;
   }
 
-  status.textContent = `Deleted ${deletedCount} ${description} ✅`;
+  status.textContent = `Deleted ${deletedCount} ${description} `;
 }
 
 // ==================== UPDATED: COUNT EMAILS ====================
 async function countEmailsByQuery(query, description) {
   const ids = await getAllMessageIds(query);
   const count = ids.length;
-  status.textContent = count ? `Found ${count} ${description} 📊` : `No ${description} found 🎉`;
+  status.textContent = count ? `Found ${count} ${description} ` : `No ${description} found `;
   return count;
 }
 
@@ -314,11 +314,11 @@ async function ensureLabelExists(name) {
 async function labelEmailsByQuery(query, labelId, description) {
   const ids = await getAllMessageIds(query);
   if (ids.length === 0) {
-    status.textContent = `No ${description} found to label 🎉`;
+    status.textContent = `No ${description} found to label `;
     return;
   }
 
-  status.textContent = `Labeling ${ids.length} ${description}... 🏷️`;
+  status.textContent = `Labeling ${ids.length} ${description}... `;
   const batchSize = 1000;
   let labeled = 0;
 
@@ -331,10 +331,10 @@ async function labelEmailsByQuery(query, labelId, description) {
     });
     if (!modRes.ok) throw new Error(`Failed to label batch: ${modRes.status}`);
     labeled += batch.length;
-    status.textContent = `Labeled ${labeled} of ${ids.length} ${description}... 🏷️`;
+    status.textContent = `Labeled ${labeled} of ${ids.length} ${description}... `;
   }
 
-  status.textContent = `Applied label to ${labeled} ${description} ✅`;
+  status.textContent = `Applied label to ${labeled} ${description} `;
 }
 
 // Hook up buttons for AI labeling
@@ -400,7 +400,7 @@ authBtn.addEventListener("click", async () => {
     updateUIState(true);
   } catch (err) {
     console.error(err);
-    status.textContent = `Auth failed ❌`;
+    status.textContent = `Auth failed `;
     updateUIState(false);
   }
 });
