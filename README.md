@@ -61,6 +61,13 @@ Clustify/
 └── README.md             # This file
 ```
 
+## Video proof
+
+
+
+https://github.com/user-attachments/assets/36e52c85-e266-46bf-9e8e-3916d206d5de
+
+
 ## 🎯 Usage
 
 ### Connecting to Gmail
