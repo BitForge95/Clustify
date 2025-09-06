@@ -119,8 +119,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   if (message.action === "getToken") {
     console.log("🎯 Processing getToken request");
-    
-    // Always get a fresh token when explicitly requested
     console.log("🔄 Getting fresh token (user clicked connect)");
     
     getAuthToken()
@@ -134,7 +132,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: false, error: error.message || error });
       });
     
-    // Return true to indicate we'll send a response asynchronously
     return true;
   }
   
