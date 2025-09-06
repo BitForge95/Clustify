@@ -86,11 +86,6 @@ async function validateAndRefreshToken() {
 }
 
 // ==================== NEW: PAGINATION HELPER ====================
-/**
- * Fetches ALL message IDs for a query, handling multiple pages.
- * @param {string} query - The Gmail search query.
- * @returns {Promise<string[]>} - A promise that resolves to an array of all message IDs.
- */
 async function getAllMessageIds(query) {
   await validateAndRefreshToken();
   let allIds = [];
@@ -118,7 +113,6 @@ async function getAllMessageIds(query) {
 
 // ==================== UPDATED: EMAIL DELETION ====================
 async function deleteEmailsByQuery(query, description) {
-  
   const ids = await getAllMessageIds(query);
   if (ids.length === 0) {
     status.textContent = `No ${description} found to delete 🎉`;
@@ -201,8 +195,9 @@ countKeywordBtn.addEventListener("click", async () => {
 
 deleteKeywordBtn.addEventListener("click", async () => {
   const keyword = keywordInput.value.trim();
-    if(previewDeleteBtn.textContent = "Apply"){
-    previewDeleteBtn.textContent = "Delete"
+  // fixed: use comparison instead of assignment
+  if (previewDeleteBtn && previewDeleteBtn.textContent === "Apply") {
+    previewDeleteBtn.textContent = "Delete";
   }
   if (!keyword) { status.textContent="Enter a keyword."; return; }
   try {
@@ -213,29 +208,44 @@ deleteKeywordBtn.addEventListener("click", async () => {
   }
 });
 
-
 // ==================== NEW: AI KEYWORDS + LABELING ====================
-// Option A (recommended): call your backend at window.AI_BACKEND_URL
-// Option B: heuristic fallback when no backend is configured
 async function aiSuggestKeywords(labelName) {
-  status.textContent = "Asking AI for keywords (or using fallback)...";
-  previewDeleteBtn.textContent = "Apply"
+  status.textContent = "Asking Groq LLaMA for keywords...";
+  if (previewDeleteBtn) previewDeleteBtn.textContent = "Apply";
+
   try {
-    if (window.AI_BACKEND_URL) {
-      const res = await fetch(window.AI_BACKEND_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: labelName })
-      });
-      if (!res.ok) throw new Error(`AI backend error: ${res.status}`);
-      const data = await res.json();
-      if (Array.isArray(data.keywords) && data.keywords.length) return data.keywords;
-    }
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer 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`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        messages: [
+          { role: "system", content: "You are an assistant that generates concise Gmail keyword filters." },
+          { role: "user", content: `Suggest up to 10 short keywords to filter emails for label: "${labelName}". Return them as a comma-separated list only.` }
+        ],
+        temperature: 0.4,
+        max_tokens: 100
+      })
+    });
+
+    if (!res.ok) throw new Error(`Groq API error: ${res.status}`);
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content?.trim() || "";
+
+    const kws = text
+      .split(/[,;\n]+/)
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (kws.length) return kws;
   } catch (e) {
-    console.warn("AI backend unavailable, using heuristic.", e);
+    console.warn("Groq AI unavailable, using fallback.", e);
   }
 
-  // Heuristic fallback
+  // --- Fallback heuristic (unchanged) ---
   const base = (labelName || "").toLowerCase().trim();
   const words = Array.from(new Set(base.split(/[\s\-_/]+/).filter(Boolean)));
 
@@ -317,53 +327,56 @@ async function labelEmailsByQuery(query, labelId, description) {
 }
 
 // Hook up buttons for AI labeling
-generateKeywordsBtn.addEventListener("click", async () => {
-  const label = labelNameInput.value.trim();
-  if (!label) { status.textContent = "Enter a label name first."; return; }
-  try {
-    const kws = await aiSuggestKeywords(label);
-    generatedKeywords.value = kws.join(", ");
-    status.textContent = `Got ${kws.length} keyword(s) for "${label}". You can edit before applying.`;
-    generatedKeywords.readOnly = false;
-  } catch (err) {
-    status.textContent = `AI keyword error: ${err.message}`;
-  }
-});
-
-applyAutoLabelBtn.addEventListener("click", async () => {
-  const label = labelNameInput.value.trim();
-  if (!label) { status.textContent = "Enter a label name first."; return; }
-
-  // Use existing keywords if present; otherwise fetch from AI
-  let keywords = generatedKeywords.value
-    .split(",")
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  if (keywords.length === 0) {
+if (generateKeywordsBtn) {
+  generateKeywordsBtn.addEventListener("click", async () => {
+    const label = labelNameInput ? labelNameInput.value.trim() : "";
+    if (!label) { status.textContent = "Enter a label name first."; return; }
     try {
-      keywords = await aiSuggestKeywords(label);
-      generatedKeywords.value = keywords.join(", ");
-      generatedKeywords.readOnly = false;
-    } catch (e) {
-      status.textContent = `AI keyword error: ${e.message}`;
-      return;
+      const kws = await aiSuggestKeywords(label);
+      if (generatedKeywords) generatedKeywords.value = kws.join(", ");
+      status.textContent = `Got ${kws.length} keyword(s) for "${label}". You can edit before applying.`;
+      if (generatedKeywords) generatedKeywords.readOnly = false;
+    } catch (err) {
+      status.textContent = `AI keyword error: ${err.message}`;
     }
-  }
+  });
+}
 
-  const query = buildGmailQueryFromKeywords(keywords);
-  if (!query) { status.textContent = "No usable keywords."; return; }
+if (applyAutoLabelBtn) {
+  applyAutoLabelBtn.addEventListener("click", async () => {
+    const label = labelNameInput ? labelNameInput.value.trim() : "";
+    if (!label) { status.textContent = "Enter a label name first."; return; }
 
-  try {
-    const ok = await showSubjectPreview(query, `emails for label "${label}"`);
-    if (!ok) { status.textContent = "Canceled."; return; }
+    // Use existing keywords if present; otherwise fetch from AI
+    let keywords = generatedKeywords && generatedKeywords.value
+      ? generatedKeywords.value.split(",").map(s => s.trim()).filter(Boolean)
+      : [];
 
-    const labelId = await ensureLabelExists(label);
-    await labelEmailsByQuery(query, labelId, `emails for label "${label}"`);
-  } catch (err) {
-    status.textContent = `Error: ${err.message}`;
-  }
-});
+    if (keywords.length === 0) {
+      try {
+        keywords = await aiSuggestKeywords(label);
+        if (generatedKeywords) generatedKeywords.value = keywords.join(", ");
+        if (generatedKeywords) generatedKeywords.readOnly = false;
+      } catch (e) {
+        status.textContent = `AI keyword error: ${e.message}`;
+        return;
+      }
+    }
+
+    const query = buildGmailQueryFromKeywords(keywords);
+    if (!query) { status.textContent = "No usable keywords."; return; }
+
+    try {
+      const ok = await showSubjectPreview(query, `emails for label "${label}"`);
+      if (!ok) { status.textContent = "Canceled."; return; }
+
+      const labelId = await ensureLabelExists(label);
+      await labelEmailsByQuery(query, labelId, `emails for label "${label}"`);
+    } catch (err) {
+      status.textContent = `Error: ${err.message}`;
+    }
+  });
+}
 
 // ==================== AUTH & INIT ====================
 authBtn.addEventListener("click", async () => {
