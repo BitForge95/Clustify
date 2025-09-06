@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "MailPilot Cleanup Bot",
   "version": "1.1",
-  "description": "Delete all unread promotional and lost & found emails in one click.",
+  "description": "Delete emails by keyword and AI-assisted auto labeling.",
   "permissions": [
     "identity",
     "storage",

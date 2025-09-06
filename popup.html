@@ -3,31 +3,24 @@
 <head>
   <title>MailPilot Cleanup</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Optional: point to your AI backend for keyword suggestions -->
+  <!-- <script>window.AI_BACKEND_URL = "https://your-backend.example.com/keywords";</script> -->
 </head>
 <body>
   <div class="container">
     <h2>MailPilot</h2>
     <button id="authBtn">Connect Gmail</button>
     <button id="logoutBtn">Log Out</button>
-    
+
     <div class="button-group">
+      <!-- kept intentionally commented to preserve your original file layout -->
       <!-- <button id="deletePromotionsBtn" disabled>Delete Unread Promotions</button>
       <button id="countLostFoundBtn" disabled class="count-btn">Count Lost & Found Emails</button>
       <button id="deleteLostFoundBtn" disabled>Delete Lost & Found Emails</button>
       <button id="deleteAllBtn" disabled class="danger-btn">Delete Both</button> -->
     </div>
-    
-    <!-- <div class="info-section">
-      <p><strong>Lost & Found Search includes:</strong></p>
-      <ul>
-        <li>Subject: "lost and found", "lost item", "found item"</li>
-        <li>Subject: "missing item", "lost property", "campus lost"</li>
-        <li>Body: "lost and found", "please claim", "unclaimed item"</li>
-        <li>Body: "security office", "lost items"</li>
-      </ul>
-    </div> -->
-    
-    <hr>
+
+    <!-- Custom Keyword Delete/Count -->
     <div class="custom-keyword-section">
       <h3>Custom Keyword Search</h3>
       <input type="text" id="keywordInput" placeholder="Enter keyword (e.g., 'unsubscribe')">
@@ -36,15 +29,26 @@
         <button id="deleteKeywordBtn" disabled>Delete by Keyword</button>
       </div>
     </div>
-    
+
+    <!-- ===== AI Auto-Label Section (NEW) ===== -->
+    <div class="labeler-section">
+      <h3>AI Auto-Label</h3>
+      <input type="text" id="labelNameInput" placeholder="Enter label (e.g., 'Travel Receipts')" />
+      <div class="button-group">
+        <button id="generateKeywordsBtn" disabled class="count-btn">Suggest Keywords</button>
+        <button id="applyAutoLabelBtn" disabled>Preview & Apply Label</button>
+      </div>
+      <textarea id="generatedKeywords" rows="3" placeholder="Keywords will appear here…" readonly></textarea>
+    </div>
+
     <p id="status"></p>
 
     <!-- Preview Modal -->
     <div id="previewModal" style="display:none;">
       <div id="previewContent">
-        <h3>Email Subjects to Delete</h3>
+        <h3>Email Subjects to Delete / Label</h3>
         <ul id="previewList"></ul>
-        <button id="previewDeleteBtn">Delete</button>
+        <button id="previewDeleteBtn">Delete / Apply</button>
         <button id="previewCancelBtn">Cancel</button>
       </div>
     </div>

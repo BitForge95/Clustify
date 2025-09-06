@@ -69,7 +69,6 @@ button:disabled {
 }
 
 #logoutBtn {
-
   width: 100%;
   background-color: #d73027; /* Make the logout button red */
   display: none;
@@ -173,11 +172,34 @@ button:disabled {
   background: #ccc; 
 }
 
-
 .auth-buttons #authBtn.connected {
   background-color: #34a853; /* Green for "Connected" */
 }
 
 .auth-buttons #authBtn.connected:hover {
   background-color: #2d8f47;
+}
+
+/* ===== NEW: AI Auto-Label styles ===== */
+.labeler-section {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.labeler-section h3 {
+  margin: 0 0 10px 0;
+}
+
+#labelNameInput, #generatedKeywords {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 6px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
 }
