@@ -11,6 +11,11 @@
     "https://accounts.google.com/*"
   ],
   "browser_action": {
+    "default_icon": {
+      "16": "icons/logo.png",
+      "48": "icons/logo.png",
+      "128": "icons/logo.png"
+    },
     "default_title": "MailPilot Cleanup",
     "default_popup": "popup.html"
   },
