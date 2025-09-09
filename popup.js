@@ -210,7 +210,7 @@ async function aiSuggestKeywords(labelName) {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer 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`,
+        "Authorization": `Bearer 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`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -242,12 +242,7 @@ async function aiSuggestKeywords(labelName) {
   const words = Array.from(new Set(base.split(/[\s\-_/]+/).filter(Boolean)));
 
   const synonyms = {
-    travel: ["flight", "airline", "itinerary", "boarding pass", "pnr", "hotel", "booking", "reservation", "uber", "ola", "cab", "train", "irctc", "bus", "indigo", "vistara", "spicejet"],
-    receipt: ["invoice", "bill", "payment receipt", "paid", "transaction", "gst", "tax invoice", "amount"],
-    newsletter: ["unsubscribe", "newsletter", "digest", "update"],
-    promo: ["offer", "deal", "sale", "discount", "coupon", "promo"],
-    meeting: ["calendar", "invite", "zoom", "google meet", "teams", "webex", "ics"],
-    job: ["application", "interview", "hr", "recruiter", "offer letter"]
+    
   };
 
   let out = [...words];
