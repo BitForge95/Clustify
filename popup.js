@@ -186,8 +186,9 @@ countKeywordBtn.addEventListener("click", async () => {
 });
 deleteKeywordBtn.addEventListener("click", async () => {
   const keyword = keywordInput.value.trim();
-  if (previewDeleteBtn && previewDeleteBtn.textContent === "Apply") {
-    previewDeleteBtn.textContent = "Delete";
+  if (!keyword) {
+    status.textContent = "Please enter a keyword.";
+    return;
   }
 
   const isSubjectOnly = subjectOnlyCheckbox.checked;
@@ -201,7 +202,6 @@ deleteKeywordBtn.addEventListener("click", async () => {
     await deleteEmailsByQuery(query, description);
   }
 });
-
 async function aiSuggestKeywords(labelName) {
   status.textContent = "Asking Groq LLaMA for keywords...";
   if (previewDeleteBtn) previewDeleteBtn.textContent = "Apply";
@@ -210,7 +210,7 @@ async function aiSuggestKeywords(labelName) {
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer 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",
+        "Authorization": `Bearer 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`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -238,17 +238,11 @@ async function aiSuggestKeywords(labelName) {
     console.warn("Groq AI unavailable, using fallback.", e);
   }
 
-
   const base = (labelName || "").toLowerCase().trim();
   const words = Array.from(new Set(base.split(/[\s\-_/]+/).filter(Boolean)));
 
   const synonyms = {
-    travel: ["flight", "airline", "itinerary", "boarding pass", "pnr", "hotel", "booking", "reservation", "uber", "ola", "cab", "train", "irctc", "bus", "indigo", "vistara", "spicejet"],
-    receipt: ["invoice", "bill", "payment receipt", "paid", "transaction", "gst", "tax invoice", "amount"],
-    newsletter: ["unsubscribe", "newsletter", "digest", "update"],
-    promo: ["offer", "deal", "sale", "discount", "coupon", "promo"],
-    meeting: ["calendar", "invite", "zoom", "google meet", "teams", "webex", "ics"],
-    job: ["application", "interview", "hr", "recruiter", "offer letter"]
+    
   };
 
   let out = [...words];
@@ -319,7 +313,6 @@ async function labelEmailsByQuery(query, labelId, description) {
   status.textContent = `Applied label to ${labeled} ${description} `;
 }
 
-
 if (generateKeywordsBtn) {
   generateKeywordsBtn.addEventListener("click", async () => {
     const label = labelNameInput ? labelNameInput.value.trim() : "";
@@ -339,8 +332,6 @@ if (applyAutoLabelBtn) {
   applyAutoLabelBtn.addEventListener("click", async () => {
     const label = labelNameInput ? labelNameInput.value.trim() : "";
     if (!label) { status.textContent = "Enter a label name first."; return; }
-
-
 
     let keywords = generatedKeywords && generatedKeywords.value
       ? generatedKeywords.value.split(",").map(s => s.trim()).filter(Boolean)

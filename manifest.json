@@ -1,16 +1,14 @@
 {
   "manifest_version": 2,
-
   "name": "Clustify",
   "version": "1.1",
-  "description": "Delete emails by keyword and AI-assisted auto labeling (Groq LLaMA).",
+  "description": "Delete emails by keyword and AI-assisted auto labeling.",
   "permissions": [
     "identity",
     "storage",
     "https://gmail.googleapis.com/*",
     "https://www.googleapis.com/*",
-    "https://accounts.google.com/*",
-    "https://api.groq.com/*"
+    "https://accounts.google.com/*"
   ],
   "browser_action": {
     "default_icon": {
