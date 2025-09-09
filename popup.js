@@ -77,7 +77,6 @@ async function validateAndRefreshToken() {
   return true;
 }
 
-// ==================== NEW: PAGINATION HELPER ====================
 async function getAllMessageIds(query) {
   await validateAndRefreshToken();
   let allIds = [];
