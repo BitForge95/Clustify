@@ -165,8 +165,8 @@ async function showSubjectPreview(query, description) {
   });
 
   return new Promise(resolve => {
-    previewDeleteBtn.onclick = () => { previewModal.style.display = "none"; resolve(true); };
-    previewCancelBtn.onclick = () => { previewModal.style.display = "none"; resolve(false); };
+    previewDeleteBtn.onclick = () => { previewModal.style.display = "none"; resolve(true); status.scrollIntoView();};
+    previewCancelBtn.onclick = () => { previewModal.style.display = "none"; resolve(false);};
   });
 }
 
@@ -325,6 +325,7 @@ if (generateKeywordsBtn) {
     } catch (err) {
       status.textContent = `AI keyword error: ${err.message}`;
     }
+    status.scrollIntoView();
   });
 }
 
